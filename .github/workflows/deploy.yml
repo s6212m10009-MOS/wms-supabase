@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# สิทธิ์ที่ GITHUB_TOKEN ต้องใช้สำหรับ deploy ขึ้น Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ให้ deploy ทีละครั้ง ไม่ทับกัน
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci
+
+      - name: Build static export
+        env:
+          # subpath ของ project site -> /<repo> (ดึงจาก configure-pages อัตโนมัติ)
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # ค่า public ของ Supabase (anon key เปิดเผยได้ — ถูกฝังในไฟล์ JS ฝั่ง client อยู่แล้ว)
+          NEXT_PUBLIC_SUPABASE_URL: https://cnhwaecxklvrfzeibote.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuaHdhZWN4a2x2cmZ6ZWlib3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTk1MzksImV4cCI6MjA5NzQ3NTUzOX0.gJyGrrkd_SwkVZFOlrqnPFM2Qmnf_E8nER8Yj6Neaa4
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

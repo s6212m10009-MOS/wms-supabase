@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f8fafc;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: #0f172a;
+}
+
+* {
+  font-family: -apple-system, "Segoe UI", "Sarabun", "Noto Sans Thai", sans-serif;
+}
