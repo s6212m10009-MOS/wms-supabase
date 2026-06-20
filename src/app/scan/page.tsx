@@ -7,6 +7,7 @@ import {
   getLocation,
   moveStock,
 } from "@/lib/db";
+import { useAuth } from "@/lib/auth";
 import type { Product, TxType } from "@/lib/types";
 
 type Mode = "STOCK_IN" | "STOCK_OUT" | "TRANSFER";
@@ -25,7 +26,8 @@ export default function ScanPage() {
   const [destLoc, setDestLoc] = useState("");
   const [qty, setQty] = useState(1);
   const [reference, setReference] = useState("");
-  const [user, setUser] = useState("staff");
+  const { displayName, user: authUser } = useAuth();
+  const actor = authUser?.email ?? displayName; // ผู้ทำรายการ = ผู้ที่ login อยู่
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -77,7 +79,7 @@ export default function ScanPage() {
         qty,
         sourceLoc: mode === "STOCK_IN" ? null : sourceLoc.trim(),
         destLoc: mode === "STOCK_OUT" ? null : destLoc.trim(),
-        user,
+        user: actor,
         reference: reference.trim() || undefined,
       });
       setMsg({ ok: true, text: `สำเร็จ! ${tx.id} — ${product.name} จำนวน ${qty}` });
@@ -163,10 +165,9 @@ export default function ScanPage() {
             />
           </Field>
           <Field label="ผู้ทำรายการ">
-            <select value={user} onChange={(e) => setUser(e.target.value)} className="input">
-              <option value="staff">สมศักดิ์ รักงาน (staff)</option>
-              <option value="admin">สมชาย ใจดี (admin)</option>
-            </select>
+            <div className="input bg-slate-50 text-slate-600 truncate" title={actor}>
+              {actor}
+            </div>
           </Field>
         </div>
 

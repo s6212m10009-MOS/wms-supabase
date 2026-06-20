@@ -11,5 +11,9 @@ if (!url || !anonKey) {
 }
 
 export const supabase = createClient(url ?? "", anonKey ?? "", {
-  auth: { persistSession: false },
+  auth: {
+    // เก็บ session ไว้ใน localStorage เพื่อให้ยัง login อยู่หลังรีเฟรช + ต่ออายุ token อัตโนมัติ
+    persistSession: true,
+    autoRefreshToken: true,
+  },
 });
