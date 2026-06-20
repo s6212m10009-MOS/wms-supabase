@@ -97,6 +97,15 @@ export async function getProductByBarcode(barcode: string): Promise<Product | nu
   return data ? toProduct(data) : null;
 }
 
+/** ค้นหาสินค้าจากบาร์โค้ด หรือรหัสสินค้า (id) — สำหรับการยิงสแกน */
+export async function findProduct(q: string): Promise<Product | null> {
+  const code = q.trim();
+  if (!code) return null;
+  const byBarcode = await getProductByBarcode(code);
+  if (byBarcode) return byBarcode;
+  return getProduct(code);
+}
+
 export async function saveProduct(p: Product): Promise<void> {
   const { error } = await supabase.from("products").upsert({
     id: p.id,
